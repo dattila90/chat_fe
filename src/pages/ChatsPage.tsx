@@ -2,9 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { authAPI, type UserAccount } from "../api/auth";
 import { conversationsAPI, type Conversation } from "../api/conversations";
-import DashboardFooter, { type TabType } from "../components/DashboardFooter";
+import ChatsNavigation, { type TabType } from "../components/ChatsNavigation";
 
-function DashboardPage() {
+function ChatsPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserAccount | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -220,7 +220,7 @@ function DashboardPage() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-32">
           <div className="text-white">
             <h2 className="text-4xl font-bold mb-8 text-center">
-              Welcome to your Dashboard!
+              Welcome to ChatApp!
             </h2>
 
             {/* Tab Content */}
@@ -229,8 +229,8 @@ function DashboardPage() {
         </main>
       </div>
 
-      {/* Dashboard Footer */}
-      <DashboardFooter
+      {/* Chats Navigation */}
+      <ChatsNavigation
         conversationCount={conversations.length}
         activeTab={activeTab}
         onTabChange={handleTabChange}
@@ -239,4 +239,4 @@ function DashboardPage() {
   );
 }
 
-export default DashboardPage;
+export default ChatsPage;

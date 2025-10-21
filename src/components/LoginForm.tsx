@@ -34,7 +34,7 @@ function LoginForm({ onBack, onLoginSuccess }: LoginFormProps) {
       if (onLoginSuccess) {
         onLoginSuccess(response.user);
       } else {
-        // Default success behavior - could redirect to dashboard
+        // Default success behavior - could redirect to chats
         alert(`Welcome back, ${response.user.first_name}!`);
       }
     } catch (err: any) {

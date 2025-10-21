@@ -8,8 +8,8 @@ function LoginPage() {
   const handleLoginSuccess = (user: any) => {
     console.log("Login successful, redirecting user:", user);
 
-    // Redirect to the page they were trying to access, or dashboard by default
-    const from = (location.state as any)?.from?.pathname || "/dashboard";
+    // Redirect to the page they were trying to access, or chats by default
+    const from = (location.state as any)?.from?.pathname || "/chats";
     navigate(from, { replace: true });
   };
 

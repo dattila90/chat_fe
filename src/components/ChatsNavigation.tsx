@@ -2,17 +2,17 @@ import { useState } from "react";
 
 export type TabType = "chats" | "friends" | "friend-requests";
 
-interface DashboardFooterProps {
+interface ChatsNavigationProps {
   conversationCount?: number;
   activeTab?: TabType;
   onTabChange?: (tab: TabType) => void;
 }
 
-function DashboardFooter({
+function ChatsNavigation({
   conversationCount = 0,
   activeTab = "chats",
   onTabChange,
-}: DashboardFooterProps) {
+}: ChatsNavigationProps) {
   const [currentTab, setCurrentTab] = useState<TabType>(activeTab);
 
   const handleTabClick = (tab: TabType) => {
@@ -86,4 +86,4 @@ function DashboardFooter({
   );
 }
 
-export default DashboardFooter;
+export default ChatsNavigation;

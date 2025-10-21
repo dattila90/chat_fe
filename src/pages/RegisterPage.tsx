@@ -6,8 +6,8 @@ function RegisterPage() {
 
   const handleRegisterSuccess = (user: any) => {
     console.log("Registration successful:", user);
-    // Redirect to dashboard after successful registration
-    navigate("/dashboard");
+    // Redirect to chats after successful registration
+    navigate("/chats");
   };
 
   return (
