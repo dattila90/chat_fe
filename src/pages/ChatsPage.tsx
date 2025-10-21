@@ -2,14 +2,13 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { authAPI, type UserAccount } from "../api/auth";
 import { conversationsAPI, type Conversation } from "../api/conversations";
-import ChatsNavigation, { type TabType } from "../components/ChatsNavigation";
+import ChatsNavigation from "../components/ChatsNavigation";
 import AppLayout from "../layouts/AppLayout";
 
 function ChatsPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserAccount | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeTab, setActiveTab] = useState<TabType>("chats");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
@@ -56,17 +55,49 @@ function ChatsPage() {
     navigate("/");
   };
 
-  const handleTabChange = (tab: TabType) => {
-    setActiveTab(tab);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+        <div className="text-white text-xl">Loading user data...</div>
+      </div>
+    );
+  }
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "chats":
-        return (
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+        <div className="text-center text-white">
+          <h2 className="text-2xl font-bold mb-4">Error</h2>
+          <p className="text-xl mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-blue-50"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+        <div className="text-white text-xl">No user data available</div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <AppLayout user={user} onLogout={handleLogout}>
+        <div className="text-white">
+          <h2 className="text-4xl font-bold mb-8 text-center">
+            Your Conversations
+          </h2>
+
+          {/* Conversations Content */}
           <div className="mb-12">
-            <h3 className="text-2xl font-semibold mb-6">Your Conversations</h3>
-
             {conversations.length === 0 ? (
               <div className="bg-white bg-opacity-10 p-8 rounded-lg backdrop-blur-sm text-center">
                 <p className="text-blue-100 text-lg">No conversations yet</p>
@@ -128,91 +159,11 @@ function ChatsPage() {
               </div>
             )}
           </div>
-        );
-
-      case "friends":
-        return (
-          <div className="mb-12">
-            <h3 className="text-2xl font-semibold mb-6">Your Friends</h3>
-            <div className="bg-white bg-opacity-10 p-8 rounded-lg backdrop-blur-sm text-center">
-              <p className="text-blue-100 text-lg">No friends yet</p>
-              <p className="text-blue-200 text-sm mt-2">
-                Send friend requests to connect with others
-              </p>
-            </div>
-          </div>
-        );
-
-      case "friend-requests":
-        return (
-          <div className="mb-12">
-            <h3 className="text-2xl font-semibold mb-6">Friend Requests</h3>
-            <div className="bg-white bg-opacity-10 p-8 rounded-lg backdrop-blur-sm text-center">
-              <p className="text-blue-100 text-lg">No pending requests</p>
-              <p className="text-blue-200 text-sm mt-2">
-                Friend requests will appear here
-              </p>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-        <div className="text-white text-xl">Loading user data...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-        <div className="text-center text-white">
-          <h2 className="text-2xl font-bold mb-4">Error</h2>
-          <p className="text-xl mb-6">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-blue-50"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-        <div className="text-white text-xl">No user data available</div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <AppLayout user={user} onLogout={handleLogout}>
-        <div className="text-white">
-          <h2 className="text-4xl font-bold mb-8 text-center">
-            Welcome to ChatApp!
-          </h2>
-
-          {/* Tab Content */}
-          {renderTabContent()}
         </div>
       </AppLayout>
 
       {/* Chats Navigation */}
-      <ChatsNavigation
-        conversationCount={conversations.length}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-      />
+      <ChatsNavigation conversationCount={conversations.length} />
     </>
   );
 }

@@ -1,24 +1,39 @@
-import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export type TabType = "chats" | "friends" | "friend-requests";
 
 interface ChatsNavigationProps {
   conversationCount?: number;
-  activeTab?: TabType;
-  onTabChange?: (tab: TabType) => void;
+  friendsCount?: number;
+  friendRequestsCount?: number;
 }
 
 function ChatsNavigation({
   conversationCount = 0,
-  activeTab = "chats",
-  onTabChange,
+  friendsCount = 0,
+  friendRequestsCount = 0,
 }: ChatsNavigationProps) {
-  const [currentTab, setCurrentTab] = useState<TabType>(activeTab);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const getCurrentTab = (): TabType => {
+    const path = location.pathname;
+    if (path === "/friends") return "friends";
+    if (path === "/friend-requests") return "friend-requests";
+    return "chats";
+  };
 
   const handleTabClick = (tab: TabType) => {
-    setCurrentTab(tab);
-    if (onTabChange) {
-      onTabChange(tab);
+    switch (tab) {
+      case "chats":
+        navigate("/chats");
+        break;
+      case "friends":
+        navigate("/friends");
+        break;
+      case "friend-requests":
+        navigate("/friend-requests");
+        break;
     }
   };
 
@@ -38,13 +53,21 @@ function ChatsNavigation({
       case "friends":
         return {
           title: "Friends",
-          content: "0 friends online",
+          content:
+            friendsCount === 0
+              ? "No friends"
+              : `${friendsCount} friend${friendsCount !== 1 ? "s" : ""}`,
           icon: "👥",
         };
       case "friend-requests":
         return {
           title: "Requests",
-          content: "No pending requests",
+          content:
+            friendRequestsCount === 0
+              ? "No requests"
+              : `${friendRequestsCount} request${
+                  friendRequestsCount !== 1 ? "s" : ""
+                }`,
           icon: "📨",
         };
       default:
@@ -53,6 +76,7 @@ function ChatsNavigation({
   };
 
   const tabs: TabType[] = ["chats", "friends", "friend-requests"];
+  const currentTab = getCurrentTab();
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 bg-white bg-opacity-10 backdrop-blur-sm border-t border-white border-opacity-20 z-50">
