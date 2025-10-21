@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { authAPI, type UserAccount } from "../api/auth";
 import { conversationsAPI, type Conversation } from "../api/conversations";
 import ChatsNavigation, { type TabType } from "../components/ChatsNavigation";
+import AppLayout from "../layouts/AppLayout";
 
 function ChatsPage() {
   const navigate = useNavigate();
@@ -194,40 +195,17 @@ function ChatsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700">
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="bg-white bg-opacity-10 backdrop-blur-sm border-b border-white border-opacity-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div className="flex items-center">
-                <h1 className="text-2xl font-bold text-white">ChatApp</h1>
-              </div>
-              <div className="flex items-center space-x-4">
-                <span className="text-white">Welcome, {user.first_name}!</span>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          </div>
-        </header>
+    <>
+      <AppLayout user={user} onLogout={handleLogout}>
+        <div className="text-white">
+          <h2 className="text-4xl font-bold mb-8 text-center">
+            Welcome to ChatApp!
+          </h2>
 
-        {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-32">
-          <div className="text-white">
-            <h2 className="text-4xl font-bold mb-8 text-center">
-              Welcome to ChatApp!
-            </h2>
-
-            {/* Tab Content */}
-            {renderTabContent()}
-          </div>
-        </main>
-      </div>
+          {/* Tab Content */}
+          {renderTabContent()}
+        </div>
+      </AppLayout>
 
       {/* Chats Navigation */}
       <ChatsNavigation
@@ -235,7 +213,7 @@ function ChatsPage() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
       />
-    </div>
+    </>
   );
 }
 
