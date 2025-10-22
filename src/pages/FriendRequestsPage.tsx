@@ -12,9 +12,13 @@ function FriendRequestsPage() {
   const [outgoingRequests, setOutgoingRequests] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"incoming" | "outgoing">(
-    "incoming"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "incoming" | "outgoing" | "search"
+  >("incoming");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -108,6 +112,57 @@ function FriendRequestsPage() {
     }
   };
 
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearchLoading(true);
+    setSearchError("");
+
+    try {
+      const results = await friendsAPI.searchActiveUsers(searchQuery.trim());
+      console.log("Search results:", results);
+
+      // Filter out current user and handle friendship_status
+      const filteredResults = results.filter((result) => {
+        // Don't show current user
+        if (result.user?.id === user?.id || result.id === user?.id) {
+          return false;
+        }
+
+        // Show users based on their friendship status
+        const status = result.friendship_status;
+        return status === "none" || status === null || status === undefined;
+      });
+
+      setSearchResults(filteredResults);
+    } catch (err: any) {
+      console.error("Search error:", err);
+      setSearchError(err.message || "Failed to search users");
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handleSendFriendRequest = async (email: string) => {
+    try {
+      await friendsAPI.sendFriendRequest({ receiver_email: email });
+      // Remove the user from search results after sending request
+      setSearchResults((prev) =>
+        prev.filter((result) => {
+          const userData = result.user || result;
+          return userData.email !== email;
+        })
+      );
+      alert("Friend request sent successfully!");
+    } catch (err: any) {
+      console.error("Send friend request error:", err);
+      alert(err.message || "Failed to send friend request");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
@@ -152,10 +207,10 @@ function FriendRequestsPage() {
 
           {/* Tab Navigation */}
           <div className="mb-8">
-            <div className="flex space-x-1 bg-white bg-opacity-10 p-1 rounded-lg backdrop-blur-sm">
+            <div className="grid grid-cols-3 gap-1 bg-white bg-opacity-10 p-1 rounded-lg backdrop-blur-sm">
               <button
                 onClick={() => setActiveTab("incoming")}
-                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
+                className={`py-3 px-4 rounded-lg font-medium transition-colors ${
                   activeTab === "incoming"
                     ? "bg-white bg-opacity-20 text-white"
                     : "text-blue-200 hover:text-white hover:bg-white hover:bg-opacity-10"
@@ -165,7 +220,7 @@ function FriendRequestsPage() {
               </button>
               <button
                 onClick={() => setActiveTab("outgoing")}
-                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
+                className={`py-3 px-4 rounded-lg font-medium transition-colors ${
                   activeTab === "outgoing"
                     ? "bg-white bg-opacity-20 text-white"
                     : "text-blue-200 hover:text-white hover:bg-white hover:bg-opacity-10"
@@ -173,12 +228,141 @@ function FriendRequestsPage() {
               >
                 Sent ({outgoingRequests.length})
               </button>
+              <button
+                onClick={() => setActiveTab("search")}
+                className={`py-3 px-4 rounded-lg font-medium transition-colors ${
+                  activeTab === "search"
+                    ? "bg-white bg-opacity-20 text-white"
+                    : "text-blue-200 hover:text-white hover:bg-white hover:bg-opacity-10"
+                }`}
+              >
+                Find Users
+              </button>
             </div>
           </div>
 
           {/* Content Based on Active Tab */}
           <div className="mb-12">
-            {activeTab === "incoming" ? (
+            {activeTab === "search" ? (
+              <div>
+                <h3 className="text-2xl font-semibold mb-6">
+                  Find Active Users
+                </h3>
+
+                {/* Search Input */}
+                <div className="mb-6">
+                  <div className="bg-white bg-opacity-10 p-6 rounded-lg backdrop-blur-sm">
+                    <div className="flex gap-4">
+                      <input
+                        type="text"
+                        placeholder="Search active users..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                        className="flex-1 px-4 py-2 rounded-lg bg-white bg-opacity-20 text-white placeholder-blue-200 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      />
+                      <button
+                        onClick={handleSearch}
+                        disabled={searchLoading}
+                        className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg transition-colors"
+                      >
+                        {searchLoading ? "Searching..." : "Search"}
+                      </button>
+                    </div>
+
+                    {/* Search Error */}
+                    {searchError && (
+                      <p className="text-red-300 mt-4">{searchError}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Search Results */}
+                {searchResults.length > 0 ? (
+                  <div>
+                    <h4 className="text-lg font-medium mb-4">
+                      Search Results ({searchResults.length}):
+                    </h4>
+                    <div className="grid gap-4">
+                      {searchResults.map((result) => {
+                        const userData = result.user || result;
+                        const friendshipStatus = result.friendship_status;
+
+                        return (
+                          <div
+                            key={userData.id}
+                            className="bg-white bg-opacity-10 p-6 rounded-lg backdrop-blur-sm hover:bg-opacity-20 transition-all"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <h4 className="text-xl font-semibold mb-2">
+                                  {userData.name ||
+                                    userData.full_name ||
+                                    `${userData.first_name || ""} ${
+                                      userData.last_name || ""
+                                    }`.trim()}
+                                </h4>
+                                <p className="text-blue-200 text-sm mb-2">
+                                  {userData.email}
+                                </p>
+                                <div className="flex items-center gap-2 mt-2">
+                                  {userData.status_id === 1 && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500 bg-opacity-20 text-green-300">
+                                      Active
+                                    </span>
+                                  )}
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-500 bg-opacity-20 text-blue-300">
+                                    {friendshipStatus === "none" ||
+                                    !friendshipStatus
+                                      ? "No connection"
+                                      : `Status: ${friendshipStatus}`}
+                                  </span>
+                                  {userData.created_at && (
+                                    <span className="text-blue-300 text-xs">
+                                      Joined:{" "}
+                                      {new Date(
+                                        userData.created_at
+                                      ).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="ml-4">
+                                <button
+                                  onClick={() =>
+                                    handleSendFriendRequest(userData.email)
+                                  }
+                                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                                >
+                                  Send Request
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : searchQuery && !searchLoading && !searchError ? (
+                  <div className="bg-white bg-opacity-10 p-8 rounded-lg backdrop-blur-sm text-center">
+                    <p className="text-blue-100 text-lg">No users found</p>
+                    <p className="text-blue-200 text-sm mt-2">
+                      Try searching with different terms
+                    </p>
+                  </div>
+                ) : !searchQuery ? (
+                  <div className="bg-white bg-opacity-10 p-8 rounded-lg backdrop-blur-sm text-center">
+                    <p className="text-blue-100 text-lg">
+                      Search for Active Users
+                    </p>
+                    <p className="text-blue-200 text-sm mt-2">
+                      Enter a search term to find users you can send friend
+                      requests to
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            ) : activeTab === "incoming" ? (
               <div>
                 <h3 className="text-2xl font-semibold mb-6">
                   Incoming Requests ({incomingRequests.length})

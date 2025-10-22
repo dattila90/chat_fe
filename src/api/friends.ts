@@ -159,5 +159,22 @@ export const friendsAPI = {
       console.error('Search users error:', error);
       throw new Error(error.response?.data?.message || 'Failed to search users');
     }
+  },
+
+  // Search active users for friend requests
+  searchActiveUsers: async (searchTerm: string): Promise<any[]> => {
+    try {
+      const response = await axios.get(`/friends/search?query=${encodeURIComponent(searchTerm)}`);
+      console.log('Active users search response:', response.data);
+      
+      // Handle nested response structure: {success: true, data: {users: [...]}}
+      const data = response.data.data || response.data;
+      const users = data.users || data;
+      
+      return Array.isArray(users) ? users : [];
+    } catch (error: any) {
+      console.error('Search active users error:', error);
+      throw new Error(error.response?.data?.message || 'Failed to search active users');
+    }
   }
 };
